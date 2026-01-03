@@ -1,0 +1,83 @@
+"use client"
+
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { MessageSquare, Users } from "lucide-react"
+
+type GamePhase = "explanation-intro" | "discussion-intro"
+
+interface PhaseInfoDialogProps {
+  open: boolean
+  onOpenChange: () => void
+  phase: string
+}
+
+export function PhaseInfoDialog({ open, onOpenChange, phase }: PhaseInfoDialogProps) {
+  const isExplanation = phase === "explanation-intro"
+  const isDiscussion = phase === "discussion-intro"
+
+  if (!isExplanation && !isDiscussion) return null
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <div className="flex items-center gap-2 mb-2">
+            <div
+              className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                isExplanation ? "bg-chart-1/10" : "bg-chart-2/10"
+              }`}
+            >
+              {isExplanation ? (
+                <MessageSquare className="h-5 w-5 text-chart-1" />
+              ) : (
+                <Users className="h-5 w-5 text-chart-2" />
+              )}
+            </div>
+            <div>
+              <DialogTitle>{isExplanation ? "Explanation Session" : "Discussion Session"}</DialogTitle>
+              <DialogDescription>{isExplanation ? "Round 1 begins" : "Continue the investigation"}</DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          {isExplanation ? (
+            <>
+              <p className="text-sm text-muted-foreground">
+                In this session, you and the AI players will each provide <strong>one sentence</strong> explaining the
+                given keyword.
+              </p>
+              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                <h4 className="text-sm font-medium">Your task:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Share your understanding of the topic</li>
+                  <li>Listen carefully to other players</li>
+                  <li>Try to identify who might be the liar</li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Now it's time to discuss and challenge each other's statements. Ask questions and defend your position.
+              </p>
+              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                <h4 className="text-sm font-medium">Your task:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Ask probing questions to other players</li>
+                  <li>Defend your own statements if challenged</li>
+                  <li>Refine your suspicions about the liar</li>
+                </ul>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="flex justify-end">
+          <Button onClick={onOpenChange}>{isExplanation ? "Start Explanation" : "Start Discussion"}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}

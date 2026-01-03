@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Eye, Lock, Unlock, MessageSquare } from "lucide-react"
+import { startSession, logEvent } from "@/lib/api"
+
 
 export default function BriefingPage() {
   const router = useRouter()
@@ -17,11 +19,30 @@ export default function BriefingPage() {
   const topic = "Travel Destinations"
   const keyword = isLiar ? "???" : "Paris"
 
-  const handleStartChat = () => {
-    if (roleRevealed && topicRevealed) {
-      router.push("/play")
-    }
-  }
+const handleStartChat = async () => {
+  if (!roleRevealed || !topicRevealed) return
+
+  // 이미 세션이 있으면 재사용(새로 시작이면 지워도 됨)
+  const existing = localStorage.getItem("sessionId") ?? undefined
+
+  const { sessionId } = await startSession({
+    consentedAt: new Date().toISOString(),
+    ua: navigator.userAgent,
+    condition: "default",
+    sessionId: existing,
+  })
+
+  localStorage.setItem("sessionId", sessionId)
+
+  // (선택) 브리핑 완료 이벤트 남기기
+  await logEvent({
+    sessionId,
+    type: "BRIEFING_COMPLETED",
+    payload: { roleRevealed, topicRevealed },
+  })
+
+  router.push("/play")
+}
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-muted/20 px-4 py-8">

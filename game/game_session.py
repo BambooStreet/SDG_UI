@@ -35,6 +35,12 @@ class GameSession:
         self.current_round: int = 1 # [신규] 현재 라운드 추적
         self.fool_player: Player | None = None # [New] 바보 플레이어 저장
 
+    def _rotate_to_first_ai(self, order: list[Player]) -> list[Player]:
+        for i, p in enumerate(order):
+            if getattr(p, "is_ai", False):
+                return order[i:] + order[:i]
+        return order
+
     # --- 1. 게임 준비 단계 ---
     def add_player(self, name: str) -> bool:
         if self.game_state != GameState.READY:
@@ -61,7 +67,8 @@ class GameSession:
         # 순서 섞기
         player_list = list(self.players.values())
         random.shuffle(player_list)
-        self.turn_order = player_list
+        # 설명 단계에서 AI가 먼저 말하도록 순서를 회전
+        self.turn_order = self._rotate_to_first_ai(player_list)
         
         # 라이어 선정 로직
         # self.liar = random.choice(player_list) # 랜덤배정
@@ -217,13 +224,11 @@ class GameSession:
             
         self.game_state = GameState.ENDED
 
-    # 토론을 위해 순서를 '사람 -> AI'로 정렬하는 함수
+    # 토론을 위해 AI가 먼저 말하도록 순서를 회전하는 함수
     def reorder_for_discussion(self):
-        humans = [p for p in self.players.values() if not p.is_ai]
-        ais = [p for p in self.players.values() if p.is_ai]
-        
-        # 무조건 사람 먼저, 그 뒤에 AI들 (AI 순서는 섞음)
-        random.shuffle(ais)
-        self.turn_order = humans + ais
+        players = list(self.players.values())
+        random.shuffle(players)
+        # 토론 단계에서도 AI가 먼저 말하도록 순서를 회전
+        self.turn_order = self._rotate_to_first_ai(players)
         self.turn_index = 0
         logging.info(f"[순서 조작] 토론 순서 재배열: {[p.name for p in self.turn_order]}")

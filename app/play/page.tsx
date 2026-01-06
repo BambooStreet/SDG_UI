@@ -59,6 +59,7 @@ export default function PlayPage() {
 
   const [showMidCheck, setShowMidCheck] = useState(false)
   const [showFinalVote, setShowFinalVote] = useState(false)
+  const [showTurnInfo, setShowTurnInfo] = useState(false)
 
   const [showAIVoting, setShowAIVoting] = useState(false)
 
@@ -72,20 +73,23 @@ export default function PlayPage() {
 
   const [aiBusy, setAiBusy] = useState(false)
   const pendingUserEchoRef = useRef<{ name: string; content: string } | null>(null)
+  const lastTurnKeyRef = useRef<string | null>(null)
   
 
   const myName = privateState?.myName as string | undefined
   const currentPlayer = publicState?.turn?.currentPlayer as string | undefined
 
-  const isMyTurn =
+  const canPlayTurn =
     (phase === "DESCRIPTION" || phase === "DISCUSSION") &&
     !!myName &&
     !!currentPlayer &&
-    myName === currentPlayer &&
     !showPhaseInfo &&
+    !showTurnInfo &&
     !showMidCheck &&
     !showFinalVote &&
     uiNeed !== "mid-check"
+
+  const isMyTurn = canPlayTurn && myName === currentPlayer
 
   const isAITurn =
   (phase === "DESCRIPTION" || phase === "DISCUSSION") &&
@@ -93,12 +97,13 @@ export default function PlayPage() {
   !!currentPlayer &&
   myName !== currentPlayer &&
   !showPhaseInfo &&
+  !showTurnInfo &&
   !showMidCheck &&
   !showFinalVote &&
   uiNeed !== "mid-check"
 
   const statusText =
-    (aiBusy || isAITurn) ? "AI is composing… Please pause input." : undefined
+    aiBusy ? "AI is typing…" : isAITurn ? "AI is typing…" : undefined
 
   const headerPhaseLabel = useMemo(() => {
     if (phase === "DESCRIPTION") return "explanation"
@@ -121,6 +126,20 @@ export default function PlayPage() {
   useEffect(() => {
     if (isMyTurn) setForceDisable(false)
   }, [isMyTurn])
+
+  useEffect(() => {
+    if (showPhaseInfo || showTurnInfo || showMidCheck || showFinalVote) return
+    if (uiNeed === "mid-check") return
+    if (phase !== "DESCRIPTION" && phase !== "DISCUSSION") return
+    if (!myName || currentPlayer !== myName) return
+
+    const turnIndex = publicState?.turn?.index
+    const key = `${phase}:${turnIndex}:${currentPlayer}`
+    if (lastTurnKeyRef.current === key) return
+
+    lastTurnKeyRef.current = key
+    setShowTurnInfo(true)
+  }, [phase, myName, currentPlayer, publicState?.turn?.index, showPhaseInfo, showTurnInfo, showMidCheck, showFinalVote, uiNeed])
   
   function pushOneLocalMessage(m: ApiMsg) {
     const now = Date.now()
@@ -230,7 +249,7 @@ export default function PlayPage() {
   async function pumpAI(max = 30) {
     if (!sessionId) return
     if (pumpingRef.current) return
-    if (showPhaseInfo || showMidCheck || showFinalVote) return
+    if (showPhaseInfo || showTurnInfo || showMidCheck || showFinalVote) return
     if (uiNeed === "mid-check") return
     if (phase === "ENDED") return
     if ((phase === "DESCRIPTION" || phase === "DISCUSSION") && myName && currentPlayer === myName) return
@@ -317,7 +336,7 @@ export default function PlayPage() {
   useEffect(() => {
     if (!sessionId) return
     if (isLoading) return
-    if (showPhaseInfo || showMidCheck || showFinalVote) return
+    if (showPhaseInfo || showTurnInfo || showMidCheck || showFinalVote) return
     if (uiNeed === "mid-check") return
 
     if ((phase === "DESCRIPTION" || phase === "DISCUSSION") && myName && currentPlayer && myName !== currentPlayer) {
@@ -417,6 +436,11 @@ export default function PlayPage() {
     }
   }
 
+  const handleTurnInfoOpenChange = (open?: boolean) => {
+    const next = open === true
+    setShowTurnInfo(next)
+  }
+
   if (error) return <ErrorState error={error} onRetry={() => setError(null)} />
   if (isLoading || !sessionId) return <LoadingState />
 
@@ -450,6 +474,9 @@ export default function PlayPage() {
 
       {/* Intro 팝업 */}
       <PhaseInfoDialog open={showPhaseInfo} onOpenChange={handlePhaseInfoOpenChange} phase={phaseInfoKind} />
+
+      {/* 내 차례 알림 팝업 */}
+      <PhaseInfoDialog open={showTurnInfo} onOpenChange={handleTurnInfoOpenChange} phase="your-turn" />
 
       {/* Mid-check */}
       <MidCheckDialog

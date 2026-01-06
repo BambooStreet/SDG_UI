@@ -11,6 +11,7 @@ interface Message {
   content: string
   timestamp: Date
   isAI: boolean
+  isTyping?: boolean
 }
 
 interface ChatTranscriptProps {
@@ -67,7 +68,21 @@ export function ChatTranscript({ messages }: ChatTranscriptProps) {
                 message.isAI ? "bg-muted text-foreground" : "bg-primary text-primary-foreground",
               )}
             >
-              {message.content}
+              {message.isTyping ? (
+                <span className="flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-pulse" />
+                  <span
+                    className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-pulse"
+                    style={{ animationDelay: "150ms" }}
+                  />
+                  <span
+                    className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-pulse"
+                    style={{ animationDelay: "300ms" }}
+                  />
+                </span>
+              ) : (
+                message.content
+              )}
             </div>
           </div>
         </div>

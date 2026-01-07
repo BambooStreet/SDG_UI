@@ -22,11 +22,12 @@ type SessionAggregate = {
   game_ended?: any
 }
 
-function csvEscape(value: string) {
-  if (value.includes("\"") || value.includes(",") || value.includes("\n")) {
-    return `"${value.replace(/\"/g, "\"\"")}"`
+function csvEscape(value: unknown) {
+  const text = value == null ? "" : String(value)
+  if (text.includes("\"") || text.includes(",") || text.includes("\n")) {
+    return `"${text.replace(/\"/g, "\"\"")}"`
   }
-  return value
+  return text
 }
 
 function toCsv(rows: Record<string, string>[]) {

@@ -77,7 +77,7 @@ export function ConsentSection() {
                   <div className="text-muted-foreground space-y-2">
                     <p>If you have any questions, please contact the lead researcher:</p>
                     <div className="space-y-1">
-                      <p>Researcher: Seok-ju Hong</p>
+                      <p>Researcher: Seok-joo Hong</p>
                       <p>Affiliation: Dept. of Applied Artificial Intelligence, Sungkyunkwan University (SKKU)</p>
                       <p>Email: ohmyhong1@skku.edu</p>
                     </div>

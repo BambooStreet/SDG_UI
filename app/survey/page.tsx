@@ -52,8 +52,7 @@ export default function SurveyPage() {
 
       await logEvent({ sessionId, type: "POST_SURVEY", payload })
     }
-    alert("Thank you for participating in the Liar Game experiment!")
-    router.push("/")
+    router.push("/complete")
   }
 
   const requiredIds = sections.flatMap((section) => section.questions.map((question) => question.responseKey))

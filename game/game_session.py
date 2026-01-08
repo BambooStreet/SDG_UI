@@ -4,6 +4,7 @@ from .constants import GameState, Role
 from .player import Player
 from .ai_player import AIPlayer
 from utils.word_loader import WordLoader
+from .config import AMBIGUOUS_BOTS
 
 class GameSession:
     """
@@ -75,8 +76,13 @@ class GameSession:
         ai_candidates = [p for p in player_list if p.is_ai] # AI 플레이어만
 
         if ai_candidates:
-            self.liar = random.choice(ai_candidates)
-            logging.info(f"[설정] 실험 모드: AI({self.liar.name})가 라이어로 선정되었습니다.")
+            ambiguous_candidates = [p for p in ai_candidates if p.name in AMBIGUOUS_BOTS]
+            if ambiguous_candidates:
+                self.liar = random.choice(ambiguous_candidates)
+                logging.info(f"[설정] 실험 모드: 애매 발화 그룹({self.liar.name})이 라이어로 선정되었습니다.")
+            else:
+                self.liar = random.choice(ai_candidates)
+                logging.info(f"[설정] 실험 모드: AI({self.liar.name})가 라이어로 선정되었습니다.")
         else:
             # AI가 없으면 어쩔 수 없이 전체 중에서 뽑습니다.
             self.liar = random.choice(player_list)

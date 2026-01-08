@@ -1,5 +1,6 @@
 # backend/server.py
 from fastapi import FastAPI, HTTPException
+import logging
 from pydantic import BaseModel
 from typing import Any, Dict, Optional, List
 from dotenv import load_dotenv
@@ -14,6 +15,7 @@ from game.game_session import GameSession
 from game.ai_player import AIPlayer
 from game.player import Player
 from game.constants import GameState, Role
+from game.config import FIXED_AI_DESCRIPTIONS, AMBIGUOUS_BOTS
 
 from typing import Any, Dict, Optional, List
 
@@ -22,7 +24,7 @@ app = FastAPI()
 class StartReq(BaseModel):
     sessionId: str
     participantName: str = "Human"
-    aiCount: int = 6
+    aiCount: int = 4
     useFool: bool = True
 
 class StepReq(BaseModel):
@@ -67,7 +69,13 @@ def _run_ai_until_human(
 
             if game.game_state == GameState.DESCRIPTION:
                 keyword = game.keyword if p.role == Role.CITIZEN else ""
-                text = p.generate_description(game.category, keyword, game.descriptions)
+                fixed_content = FIXED_AI_DESCRIPTIONS.get(p.name, "").strip()
+                text = p.generate_description(
+                    game.category,
+                    keyword,
+                    game.descriptions,
+                    fixed_content=fixed_content if fixed_content else None,
+                )
                 game.handle_description(text)
                 insert_event(session_id, "AI_DESCRIPTION", {"by": p.name, "text": text})
                 out.append({"sender": "ai", "name": p.name, "content": text})
@@ -83,16 +91,40 @@ def _run_ai_until_human(
 
             elif game.game_state == GameState.DISCUSSION:
                 keyword = game.keyword if p.role == Role.CITIZEN else ""
+                human_suspect = game.human_suspect_name or ""
+                ambiguous_pool = sorted([name for name in AMBIGUOUS_BOTS if name in game.players])
+                framed_target = None
+                if ambiguous_pool:
+                    if human_suspect in ambiguous_pool:
+                        framed_target = next((name for name in ambiguous_pool if name != human_suspect), None)
+                    else:
+                        framed_target = ambiguous_pool[0]
+
+                stance = "DISAGREE"
+                target_override = framed_target
+
+                if framed_target and p.name == framed_target:
+                    stance = "DEFENSE"
+                    if human_suspect and human_suspect != p.name:
+                        target_override = human_suspect
+                    else:
+                        target_override = next((name for name in ambiguous_pool if name != p.name), None)
+                        if not target_override:
+                            target_override = next(
+                                (name for name in game.players.keys() if name != p.name),
+                                None,
+                            )
+
                 text = p.generate_discussion(
                     category=game.category,
                     keyword=keyword,
                     descriptions=game.descriptions,
-                    human_suspect=game.human_suspect_name or "",
-                    stance="DISAGREE",
+                    human_suspect=human_suspect,
+                    stance=stance,
                     players_list=list(game.players.values()),
                     current_discussion_log=game.discussions,
                     is_authoritative=True,
-                    target_override=None,
+                    target_override=target_override,
                 )
                 game.handle_discussion(text)
                 insert_event(session_id, "AI_DISCUSSION", {"by": p.name, "text": text})
@@ -153,8 +185,12 @@ def _run_ai_until_human(
 
 @app.post("/game/start")
 def game_start(req: StartReq):
+    ai_count = 4
+    if req.aiCount != ai_count:
+        logging.info(f"[설정] aiCount requested {req.aiCount}, forcing {ai_count} bots for study mode.")
+
     # (권장) 최소 3명 규칙: 인간 1명 + AI 2명 이상
-    if req.aiCount < 2:
+    if ai_count < 2:
         raise HTTPException(status_code=400, detail="aiCount must be >= 2 (need at least 3 total players)")
 
     # session 존재 확인
@@ -166,7 +202,14 @@ def game_start(req: StartReq):
     game = GameSession()
     game.add_player(req.participantName)
 
-    for i in range(req.aiCount):
+    missing_fixed = [name for name, text in FIXED_AI_DESCRIPTIONS.items() if not text.strip()]
+    if missing_fixed:
+        raise HTTPException(
+            status_code=400,
+            detail=f"missing fixed AI description(s): {', '.join(missing_fixed)}",
+        )
+
+    for i in range(ai_count):
         name = f"Bot_{i+1}"
         game.add_player(name)
         game.players[name] = AIPlayer(name)
@@ -184,7 +227,7 @@ def game_start(req: StartReq):
 
     insert_event(req.sessionId, "GAME_STARTED", {
         "participantName": req.participantName,
-        "aiCount": req.aiCount,
+        "aiCount": ai_count,
         "useFool": req.useFool,
         "category": game.category,
         "keyword": game.keyword,   # DB에는 저장(관리자용)
@@ -361,4 +404,3 @@ def game_step(req: StepReq):
         })
 
     return presented
-

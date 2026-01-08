@@ -130,6 +130,10 @@ class AIPlayer(Player):
         
         target_to_accuse = ""
 
+        if target_override == self.name:
+            target_override = None
+            stance = "DEFENSE"
+
         if target_override:
             # 조작된 타겟이 있다면 최우선으로 적용!
             target_to_accuse = target_override
@@ -148,8 +152,8 @@ class AIPlayer(Player):
                 target_to_accuse = random.choice(potential_targets)
 
         # 3. 예외 처리: 만약 사람이 '나(AI)'를 의심했다면? -> 무조건 반박 모드로 전환
-        if clean_human_suspect == self.name:
-            stance = 'DISAGREE'
+        if clean_human_suspect == self.name and stance != "DEFENSE":
+            stance = "DEFENSE"
 
         # 4. 프롬프트 생성
         prompt = discussions.get_discussion_prompt(

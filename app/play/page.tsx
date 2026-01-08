@@ -346,7 +346,7 @@ export default function PlayPage() {
 
   async function startGame(id: string) {
     const participantName = localStorage.getItem("participantName") ?? "P1"
-    const aiCount = Number(localStorage.getItem("aiCount") ?? "6")
+    const aiCount = 4
 
     const res = await fetch("/api/game/start", {
       method: "POST",

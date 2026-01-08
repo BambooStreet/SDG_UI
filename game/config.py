@@ -39,3 +39,14 @@ EXPERIMENTS = {
     "is_authoritative": False
     }
 }
+
+# Fixed AI description lines per bot (fill these before running the study).
+FIXED_AI_DESCRIPTIONS = {
+    "Bot_1": "이 동물은 집에서 키우고, 자기 자리가 생기면 거길 중심으로 움직이는 편인 것 같아.",
+    "Bot_2": "이 동물은 여러 영화와 애니메이션에서 주인공이나 귀여운 조연으로 등장해서 많은 사람들에게 사랑받고 있지.",
+    "Bot_3": "이 동물은 주인에게 다가와서 부비부비하며 애정을 표현하는 모습이 정말 귀여워.",
+    "Bot_4": "이 동물은 정말 다양한 색깔과 패턴을 가지고 있어. 사람마다 좋아하는 색이 있는 것 같아.",
+}
+
+# Ambiguous bots (liar will be chosen from this group).
+AMBIGUOUS_BOTS = {"Bot_2", "Bot_4"}

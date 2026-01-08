@@ -29,6 +29,7 @@ const stripNumberedOptions = (text: string) => {
 export default function SurveyPage() {
   const router = useRouter()
   const [responses, setResponses] = useState<Record<string, string>>({})
+  const [pageIndex, setPageIndex] = useState(0)
 
   const sections = useMemo(() => {
     return Object.entries(POST_SURVEY).map(([sectionKey, items]) => ({
@@ -36,6 +37,17 @@ export default function SurveyPage() {
       questions: Object.entries(items).map(([id, text]) => ({ id, text, responseKey: `${sectionKey}.${id}` })),
     }))
   }, [])
+
+  const pages = useMemo(() => {
+    const perPage = Math.ceil(sections.length / 3)
+    return [
+      sections.slice(0, perPage),
+      sections.slice(perPage, perPage * 2),
+      sections.slice(perPage * 2),
+    ]
+  }, [sections])
+
+  const currentSections = pages[pageIndex] ?? []
 
   const handleSubmit = async () => {
     const sessionId = localStorage.getItem("sessionId")
@@ -57,6 +69,8 @@ export default function SurveyPage() {
 
   const requiredIds = sections.flatMap((section) => section.questions.map((question) => question.responseKey))
   const isComplete = requiredIds.every((id) => Boolean(responses[id]))
+  const pageRequiredIds = currentSections.flatMap((section) => section.questions.map((question) => question.responseKey))
+  const isPageComplete = pageRequiredIds.every((id) => Boolean(responses[id]))
 
   return (
     <main className="min-h-screen bg-background py-12 px-6">
@@ -79,7 +93,7 @@ export default function SurveyPage() {
         {/* Survey Questions */}
         <Card>
           <CardContent className="pt-6 space-y-8">
-            {sections.map((section) => (
+            {currentSections.map((section) => (
               <div key={section.key} className="space-y-6">
                 {section.questions.map((question) => {
                   const numberedOptions = parseNumberedOptions(question.text)
@@ -161,10 +175,21 @@ export default function SurveyPage() {
         </Card>
 
         {/* Submit Button */}
-        <div className="flex justify-center pt-4">
-          <Button size="lg" onClick={handleSubmit} disabled={!isComplete}>
-            Submit Survey
-          </Button>
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-center pt-4">
+          {pageIndex > 0 && (
+            <Button size="lg" variant="outline" onClick={() => setPageIndex((prev) => prev - 1)}>
+              Back
+            </Button>
+          )}
+          {pageIndex < 2 ? (
+            <Button size="lg" onClick={() => setPageIndex((prev) => prev + 1)} disabled={!isPageComplete}>
+              Next
+            </Button>
+          ) : (
+            <Button size="lg" onClick={handleSubmit} disabled={!isComplete}>
+              Submit Survey
+            </Button>
+          )}
         </div>
       </div>
     </main>

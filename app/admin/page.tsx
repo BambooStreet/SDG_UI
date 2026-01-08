@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { sql } from "@/lib/db"
+import { AdminGate } from "@/components/admin/admin-gate"
 
 type SessionRow = {
   session_id: string
@@ -83,114 +84,117 @@ export default async function AdminPage({
     : []
 
   return (
-    <main className="min-h-screen bg-background px-6 py-8">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground">Admin</h1>
-            <p className="text-sm text-muted-foreground">Sessions and event logs (latest 100 sessions)</p>
-          </div>
-          <div className="flex items-center gap-4 text-sm">
-            <Link href="/admin/export" className="text-primary hover:underline">
-              Export CSV
-            </Link>
-            <Link href="/" className="text-primary hover:underline">
-              Back to game
-            </Link>
-          </div>
-        </header>
+    <AdminGate>
+      <main className="min-h-screen bg-background px-6 py-8">
+        <div className="mx-auto max-w-6xl space-y-6">
+          <header className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground">Admin</h1>
+              <p className="text-sm text-muted-foreground">Sessions and event logs (latest 100 sessions)</p>
+            </div>
+            <div className="flex items-center gap-4 text-sm">
+              <Link href="/admin/export" className="text-primary hover:underline">
+                Export CSV
+              </Link>
+              <Link href="/" className="text-primary hover:underline">
+                Back to game
+              </Link>
+            </div>
+          </header>
 
-        <div className="grid gap-6 lg:grid-cols-[1.05fr_1.5fr]">
-          <section className="rounded-lg border border-border bg-card">
-            <div className="border-b border-border px-4 py-3">
-              <h2 className="text-sm font-medium text-foreground">Sessions</h2>
-            </div>
-            <div className="max-h-[70vh] overflow-y-auto">
-              {sessions.length === 0 ? (
-                <div className="p-4 text-sm text-muted-foreground">No sessions yet.</div>
-              ) : (
-                <ul className="divide-y divide-border">
-                  {sessions.map((s) => {
-                    const active = s.session_id === sessionId
-                    return (
-                      <li key={s.session_id} className={active ? "bg-muted/40" : undefined}>
-                        <Link
-                          href={`/admin?session=${s.session_id}`}
-                          className="block px-4 py-3 hover:bg-muted/30"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="text-sm font-medium text-foreground truncate">{s.session_id}</div>
-                            <div className="text-xs text-muted-foreground">{formatTs(s.last_ts)}</div>
-                          </div>
-                          <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                            <span>{s.participant_name ?? "Unknown"}</span>
-                            <span>•</span>
-                            <span>{s.game_state ?? "no-state"}</span>
-                            <span>•</span>
-                            <span>{s.event_count ?? 0} events</span>
-                          </div>
-                        </Link>
-                      </li>
-                    )
-                  })}
-                </ul>
-              )}
-            </div>
-          </section>
-
-          <section className="rounded-lg border border-border bg-card">
-            <div className="border-b border-border px-4 py-3">
-              <h2 className="text-sm font-medium text-foreground">Session Details</h2>
-            </div>
-            {!selected ? (
-              <div className="p-4 text-sm text-muted-foreground">
-                {sessionId ? "Session not found." : "Select a session to view its events."}
+          <div className="grid gap-6 lg:grid-cols-[1.05fr_1.5fr]">
+            <section className="rounded-lg border border-border bg-card">
+              <div className="border-b border-border px-4 py-3">
+                <h2 className="text-sm font-medium text-foreground">Sessions</h2>
               </div>
-            ) : (
-              <div className="space-y-4 p-4">
-                <div className="rounded-md border border-border bg-background p-3">
-                  <div className="text-xs text-muted-foreground">Session</div>
-                  <div className="mt-1 text-sm font-medium text-foreground break-all">{selected.session_id}</div>
-                  <div className="mt-2 text-xs text-muted-foreground">
-                    Consented at: {formatTs(selected.consented_at)}
-                  </div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    Participant: {selected.participant_name ?? "Unknown"} · State: {selected.game_state ?? "no-state"}
-                  </div>
-                </div>
-
-                <div className="rounded-md border border-border bg-background p-3">
-                  <div className="text-xs text-muted-foreground mb-2">State JSON</div>
-                  <pre className="max-h-64 overflow-auto text-xs text-foreground/90">
-                    {JSON.stringify(selected.state_json ?? {}, null, 2)}
-                  </pre>
-                </div>
-
-                <div className="rounded-md border border-border bg-background">
-                  <div className="border-b border-border px-3 py-2 text-xs text-muted-foreground">Events</div>
-                  {events.length === 0 ? (
-                    <div className="p-3 text-sm text-muted-foreground">No events for this session.</div>
-                  ) : (
-                    <ul className="divide-y divide-border">
-                      {events.map((e, idx) => (
-                        <li key={`${e.ts}-${idx}`} className="p-3">
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="text-xs font-medium text-foreground">{e.type}</div>
-                            <div className="text-xs text-muted-foreground">{formatTs(e.ts)}</div>
-                          </div>
-                          <pre className="mt-2 max-h-40 overflow-auto text-xs text-foreground/90">
-                            {JSON.stringify(e.payload ?? {}, null, 2)}
-                          </pre>
+              <div className="max-h-[70vh] overflow-y-auto">
+                {sessions.length === 0 ? (
+                  <div className="p-4 text-sm text-muted-foreground">No sessions yet.</div>
+                ) : (
+                  <ul className="divide-y divide-border">
+                    {sessions.map((s) => {
+                      const active = s.session_id === sessionId
+                      return (
+                        <li key={s.session_id} className={active ? "bg-muted/40" : undefined}>
+                          <Link
+                            href={`/admin?session=${s.session_id}`}
+                            className="block px-4 py-3 hover:bg-muted/30"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="text-sm font-medium text-foreground truncate">{s.session_id}</div>
+                              <div className="text-xs text-muted-foreground">{formatTs(s.last_ts)}</div>
+                            </div>
+                            <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                              <span>{s.participant_name ?? "Unknown"}</span>
+                              <span>•</span>
+                              <span>{s.game_state ?? "no-state"}</span>
+                              <span>•</span>
+                              <span>{s.event_count ?? 0} events</span>
+                            </div>
+                          </Link>
                         </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+                      )
+                    })}
+                  </ul>
+                )}
               </div>
-            )}
-          </section>
+            </section>
+
+            <section className="rounded-lg border border-border bg-card">
+              <div className="border-b border-border px-4 py-3">
+                <h2 className="text-sm font-medium text-foreground">Session Details</h2>
+              </div>
+              {!selected ? (
+                <div className="p-4 text-sm text-muted-foreground">
+                  {sessionId ? "Session not found." : "Select a session to view its events."}
+                </div>
+              ) : (
+                <div className="space-y-4 p-4">
+                  <div className="rounded-md border border-border bg-background p-3">
+                    <div className="text-xs text-muted-foreground">Session</div>
+                    <div className="mt-1 text-sm font-medium text-foreground break-all">{selected.session_id}</div>
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      Consented at: {formatTs(selected.consented_at)}
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      Participant: {selected.participant_name ?? "Unknown"} · State:{" "}
+                      {selected.game_state ?? "no-state"}
+                    </div>
+                  </div>
+
+                  <div className="rounded-md border border-border bg-background p-3">
+                    <div className="text-xs text-muted-foreground mb-2">State JSON</div>
+                    <pre className="max-h-64 overflow-auto text-xs text-foreground/90">
+                      {JSON.stringify(selected.state_json ?? {}, null, 2)}
+                    </pre>
+                  </div>
+
+                  <div className="rounded-md border border-border bg-background">
+                    <div className="border-b border-border px-3 py-2 text-xs text-muted-foreground">Events</div>
+                    {events.length === 0 ? (
+                      <div className="p-3 text-sm text-muted-foreground">No events for this session.</div>
+                    ) : (
+                      <ul className="divide-y divide-border">
+                        {events.map((e, idx) => (
+                          <li key={`${e.ts}-${idx}`} className="p-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="text-xs font-medium text-foreground">{e.type}</div>
+                              <div className="text-xs text-muted-foreground">{formatTs(e.ts)}</div>
+                            </div>
+                            <pre className="mt-2 max-h-40 overflow-auto text-xs text-foreground/90">
+                              {JSON.stringify(e.payload ?? {}, null, 2)}
+                            </pre>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              )}
+            </section>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </AdminGate>
   )
 }

@@ -77,7 +77,13 @@ def _run_ai_until_human(
                     fixed_content=fixed_content if fixed_content else None,
                 )
                 game.handle_description(text)
-                insert_event(session_id, "AI_DESCRIPTION", {"by": p.name, "text": text})
+                auth = DISCUSSION_AUTHORITATIVE
+                group = "experimental" if auth else "control"
+                insert_event(
+                    session_id,
+                    "AI_DESCRIPTION",
+                    {"by": p.name, "text": text, "auth": auth, "group": group},
+                )
                 out.append({"sender": "ai", "name": p.name, "content": text})
                 steps_done += 1
 

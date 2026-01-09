@@ -26,6 +26,8 @@ type SessionAggregate = {
   pre_survey?: any
   post_survey?: any
   game_ended?: any
+  ai_description_auth?: boolean
+  ai_description_group?: string | null
   pre_survey_started_at?: string | null
   pre_survey_submitted_at?: string | null
   post_survey_started_at?: string | null
@@ -143,6 +145,14 @@ export async function GET(req: Request) {
       if (row.type === "PRE_SURVEY") agg.pre_survey = row.payload
       if (row.type === "POST_SURVEY") agg.post_survey = row.payload
       if (row.type === "GAME_ENDED") agg.game_ended = row.payload
+      if (row.type === "AI_DESCRIPTION" && row.payload?.auth !== undefined) {
+        if (agg.ai_description_auth === undefined) {
+          agg.ai_description_auth = row.payload.auth
+        }
+        if (agg.ai_description_group == null && row.payload?.group) {
+          agg.ai_description_group = row.payload.group
+        }
+      }
       if (row.type === "PRE_SURVEY_STARTED" && !agg.pre_survey_started_at)
         agg.pre_survey_started_at = row.ts ?? agg.pre_survey_started_at
       if (row.type === "POST_SURVEY_STARTED" && !agg.post_survey_started_at)
@@ -173,6 +183,8 @@ export async function GET(req: Request) {
       post_survey_started_at: s.post_survey_started_at ?? "",
       post_survey_submitted_at: s.post_survey_submitted_at ?? "",
       post_survey_duration_seconds: toDurationSeconds(s.post_survey_started_at, s.post_survey_submitted_at),
+      ai_description_auth: s.ai_description_auth === undefined ? "" : String(s.ai_description_auth),
+      ai_description_group: s.ai_description_group ?? "",
     }
 
     for (const col of preColumns) {

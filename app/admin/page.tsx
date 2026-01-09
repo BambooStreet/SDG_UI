@@ -69,6 +69,12 @@ function formatSectionTitle(key: string) {
   return key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
+function formatAuthority(auth?: boolean | null) {
+  if (auth === true) return "authoritative"
+  if (auth === false) return "non-authoritative"
+  return "-"
+}
+
 function buildSurveySections(
   payload: Record<string, Record<string, string>> | undefined,
   sections: SurveySection,
@@ -161,6 +167,7 @@ export default async function AdminPage({
   const preSurveyEvent = events.find((e) => e.type === "PRE_SURVEY")
   const postSurveyEvent = events.find((e) => e.type === "POST_SURVEY")
   const gameEndedEvent = events.find((e) => e.type === "GAME_ENDED")
+  const descriptionAuthEvent = events.find((e) => e.type === "AI_DESCRIPTION" && e.payload?.auth !== undefined)
   const preSurveyStartedAt = getEventTimestamp(events, "PRE_SURVEY_STARTED", "first")
   const preSurveySubmittedAt = getEventTimestamp(events, "PRE_SURVEY", "last")
   const postSurveyStartedAt = getEventTimestamp(events, "POST_SURVEY_STARTED", "first")
@@ -169,6 +176,8 @@ export default async function AdminPage({
   const postSurveySections = buildSurveySections(postSurveyEvent?.payload, POST_SURVEY)
   const preCounts = countSurveyAnswers(preSurveyEvent?.payload, PRE_SURVEY)
   const postCounts = countSurveyAnswers(postSurveyEvent?.payload, POST_SURVEY)
+  const descriptionAuth = descriptionAuthEvent?.payload?.auth as boolean | undefined
+  const descriptionGroup = descriptionAuthEvent?.payload?.group as string | undefined
 
   return (
     <AdminGate>
@@ -247,6 +256,11 @@ export default async function AdminPage({
                       <div className="mt-1 text-xs text-muted-foreground">
                         Participant: {selected.participant_name ?? "Unknown"} · State:{" "}
                         {selected.game_state ?? "no-state"}
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        AI description tone: {formatAuthority(descriptionAuth)} · auth=
+                        {descriptionAuth === undefined ? "-" : String(descriptionAuth)} · group=
+                        {descriptionGroup ?? "-"}
                       </div>
                     </div>
                     <div className="rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
@@ -349,6 +363,13 @@ export default async function AdminPage({
                               <div className="text-xs font-medium text-foreground">{e.type}</div>
                               <div className="text-xs text-muted-foreground">{formatTs(e.ts)}</div>
                             </div>
+                            {e.type === "AI_DESCRIPTION" ? (
+                              <div className="mt-2 text-xs text-muted-foreground">
+                                Tone: {formatAuthority(e.payload?.auth)} · auth=
+                                {e.payload?.auth === undefined ? "-" : String(e.payload?.auth)} · group=
+                                {e.payload?.group ?? "-"}
+                              </div>
+                            ) : null}
                             <pre className="mt-2 max-h-40 overflow-auto text-xs text-foreground/90">
                               {JSON.stringify(e.payload ?? {}, null, 2)}
                             </pre>

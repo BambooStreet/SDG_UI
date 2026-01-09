@@ -52,8 +52,8 @@
     },
     "social_pressure_experience": {
       "SP1": "The AI agents' choices made me reconsider my own decision.",
-      "SP2": "During the discussion, I felt pressured to agree with the agents'.",
-      "SP3": "I felt that I should follow the opinions of the other agents'."
+      "SP2": "During the discussion, I felt pressured to agree with the agents.",
+      "SP3": "I felt that I should follow the opinions of the other agents."
     },
     "perceived_trustworthiness": {
       "PTW1": "I was skeptical about the intentions, actions, or outputs of the AI agents in the game.",

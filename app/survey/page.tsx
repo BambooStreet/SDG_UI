@@ -14,16 +14,33 @@ type SurveySection = Record<string, Record<string, string>>
 
 const POST_SURVEY = (surveyItems as { post_survey: SurveySection }).post_survey
 
+const stripLeadingCondition = (text: string) =>
+  text
+    .replace(/^\s*\(\s*Only if[^)]*\)\s*/i, "")
+    .replace(/^\s*\(\s*If[^)]*\)\s*/i, "")
+    .replace(/^\s*Only if[^.?!]*\)?\s*/i, "")
+    .replace(/^\s*If[^.?!]*\)?\s*/i, "")
+    .replace(/^\)+\s*/, "")
+    .trim()
+const normalizeQuestionText = (text: string) =>
+  stripLeadingCondition(text).replace(/\bU\d+\s*=\s*Yes\b/gi, "").replace(/\s+/g, " ").trim()
+
 const parseNumberedOptions = (text: string) => {
-  const matches = [...text.matchAll(/(\d+)\s*=\s*([^,]+)/g)]
+  const cleaned = normalizeQuestionText(text)
+  const matches = [...cleaned.matchAll(/(\d+)\s*=\s*([^,]+)/g)]
   if (matches.length < 2) return null
-  return matches.map((match) => ({ value: match[1], label: match[2].trim() }))
+  return matches.map((match) => ({
+    value: match[1],
+    label: match[2].replace(/^[()\s]+/, "").replace(/[()\s]+$/, "").trim(),
+  }))
 }
 
 const stripNumberedOptions = (text: string) => {
-  const start = text.indexOf("1=")
-  if (start === -1) return text.trim()
-  return text.slice(0, start).trim()
+  const cleaned = normalizeQuestionText(text)
+  const start = cleaned.indexOf("1=")
+  if (start === -1) return cleaned.trim()
+  const trimmed = cleaned.slice(0, start).trim()
+  return trimmed.replace(/\(\s*$/, "").trim()
 }
 
 export default function SurveyPage() {
@@ -103,12 +120,34 @@ export default function SurveyPage() {
         {/* Survey Questions */}
         <Card>
           <CardContent className="pt-6 space-y-8">
+            {pageIndex === 0 ? (
+              <div className="rounded-md border border-border bg-muted/40 px-4 py-3 text-sm text-foreground">
+                <p>
+                  The following questions concern the AI agents you interacted with during the game.
+                </p>
+                <p className="mt-2 font-medium">
+                  Based on your experience in the game, please respond honestly.
+                </p>
+              </div>
+            ) : null}
             {currentSections.map((section) => (
               <div key={section.key} className="space-y-6">
+                {section.key === "attitude_clarity" ? (
+                  <div className="rounded-md border border-border bg-muted/40 px-4 py-3 text-sm text-foreground">
+                    <p>
+                      The following questions ask about your general attitudes and beliefs.
+                    </p>
+                    <p className="mt-2 font-medium">
+                      Please respond based on your usual thoughts and experiences.
+                    </p>
+                  </div>
+                ) : null}
                 {section.questions.map((question) => {
                   const numberedOptions = parseNumberedOptions(question.text)
                   const bipolarMatch = question.text.match(/(.+)\s*(?:↔|<->)\s*(.+)/)
-                  const labelText = numberedOptions ? stripNumberedOptions(question.text) : question.text
+                  const labelText = numberedOptions
+                    ? stripLeadingCondition(stripNumberedOptions(question.text))
+                    : stripLeadingCondition(question.text)
                   const idBase = question.responseKey.replace(/\./g, "-")
 
                   return (

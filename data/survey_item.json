@@ -51,9 +51,9 @@
       "PC4": "The choices of the AI agents were rational. "
     },
     "social_pressure_experience": {
-      "SP1": "The AI agent's choices made me reconsider my own decision.",
-      "SP2": "During the discussion, I felt pressured to agree with the agent.",
-      "SP3": "I felt that I should follow the opinions of the other agents."
+      "SP1": "The AI agents' choices made me reconsider my own decision.",
+      "SP2": "During the discussion, I felt pressured to agree with the agents'.",
+      "SP3": "I felt that I should follow the opinions of the other agents'."
     },
     "perceived_trustworthiness": {
       "PTW1": "I was skeptical about the intentions, actions, or outputs of the AI agents in the game.",
@@ -80,7 +80,7 @@
     },
     "attitude_correctness": {
       "ACO1": "How confident are you that your attitude is the correct one?",
-      "ACO2": "To what extent do you believe that others should share your attitude?"
+      "ACO2": "To what extent do you believe that others should have the same attitude as you?"
     },
     "susceptibility_consensus": {
       "SC1": "I tend to follow recommendations from people around me.",

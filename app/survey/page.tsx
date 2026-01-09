@@ -16,11 +16,9 @@ const POST_SURVEY = (surveyItems as { post_survey: SurveySection }).post_survey
 
 const stripLeadingCondition = (text: string) =>
   text
-    .replace(/^\s*\(\s*Only if[^)]*\)\s*/i, "")
-    .replace(/^\s*\(\s*If[^)]*\)\s*/i, "")
-    .replace(/^\s*Only if[^.?!]*\)?\s*/i, "")
-    .replace(/^\s*If[^.?!]*\)?\s*/i, "")
-    .replace(/^\)+\s*/, "")
+    .replace(/^\s*\(\s*(Only if|If)\b[^)]*\)\s*/i, "")
+    .replace(/^\s*(Only if|If)\s+U\d+\s*=\s*Yes\b[:.)-]*\s*/i, "")
+    .replace(/^\s*\)\s*/, "")
     .trim()
 const normalizeQuestionText = (text: string) =>
   stripLeadingCondition(text).replace(/\bU\d+\s*=\s*Yes\b/gi, "").replace(/\s+/g, " ").trim()
@@ -120,7 +118,7 @@ export default function SurveyPage() {
         {/* Survey Questions */}
         <Card>
           <CardContent className="pt-6 space-y-8">
-            {pageIndex === 0 ? (
+            {pageIndex === 0 || pageIndex === 1 ? (
               <div className="rounded-md border border-border bg-muted/40 px-4 py-3 text-sm text-foreground">
                 <p>
                   The following questions concern the AI agents you interacted with during the game.

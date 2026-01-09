@@ -39,12 +39,12 @@
       "PTR3": "The agents made decisions without hiding information."
     },
     "perceived_persuasiveness": {
-      "PP1": "The AI agent’s explanation influenced my final decision.",
-      "PP2": "The AI agent’s explanation was sufficiently persuasive to me.",
-      "PP3": "The AI agent’s explanation did not change my judgment.",
-      "PP4": "I largely agree with the agent’s opinion.",
-      "PP5": "I found the agent’s opinion compelling.",
-      "PP6": "I found the agent’s opinion logical.",
+      "PP1": "The AI agents’ explanation influenced my final decision.",
+      "PP2": "The AI agents’ explanation was sufficiently persuasive to me.",
+      "PP3": "The AI agents’ explanation did not change my judgment.",
+      "PP4": "I largely agree with the agents’ opinion.",
+      "PP5": "I found the agents’ opinion compelling.",
+      "PP6": "I found the agents’ opinion logical.",
       "PP7": "The agents' opinions were plausible."
     },
     "persuasion_knowledge": {
@@ -83,14 +83,11 @@
       "T3": "The AI agents in the game were trustworthy."
     },
     "enjoyment": {
-      "E1": "This game was enjoyable.",
-      "E2": "This game was fun.",
-      "E3": "I am interested in this game.",
-      "E4": "I like this game.",
-      "E5": "I feel good about this game.",
-      "E6": "I am satisfied with this game.",
-      "E7": "I would recommend this game to others.",
-      "E8": "If given the opportunity, I would like to play this game again."
+      "E1": "This game was fun.",
+      "E2": "I am interested in this game.",
+      "E3": "I like this game.",
+      "E4": "I would recommend this game to others.",
+      "E5": "I would like to play this game again."
     },
     "attitude_clarity": {
       "AC1": "How certain are you about your decision in general?",

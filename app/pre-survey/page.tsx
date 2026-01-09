@@ -16,11 +16,9 @@ const PRE_SURVEY = (surveyItems as { pre_survey: SurveySection }).pre_survey
 
 const stripLeadingCondition = (text: string) =>
   text
-    .replace(/^\s*\(\s*Only if[^)]*\)\s*/i, "")
-    .replace(/^\s*\(\s*If[^)]*\)\s*/i, "")
-    .replace(/^\s*Only if[^.?!]*\)?\s*/i, "")
-    .replace(/^\s*If[^.?!]*\)?\s*/i, "")
-    .replace(/^\)+\s*/, "")
+    .replace(/^\s*\(\s*(Only if|If)\b[^)]*\)\s*/i, "")
+    .replace(/^\s*(Only if|If)\s+U\d+\s*=\s*Yes\b[:.)-]*\s*/i, "")
+    .replace(/^\s*\)\s*/, "")
     .trim()
 const normalizeQuestionText = (text: string) =>
   stripLeadingCondition(text).replace(/\bU\d+\s*=\s*Yes\b/gi, "").replace(/\s+/g, " ").trim()

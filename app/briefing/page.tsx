@@ -7,44 +7,54 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Eye, Lock, Unlock, MessageSquare } from "lucide-react"
 import { startSession, logEvent } from "@/lib/api"
+import { useToast } from "@/hooks/use-toast"
 
 
 export default function BriefingPage() {
   const router = useRouter()
   const [roleRevealed, setRoleRevealed] = useState(false)
   const [topicRevealed, setTopicRevealed] = useState(false)
+  const { toast } = useToast()
 
   // Mock data - 나중에 실제 데이터로 교체
   const isLiar = false // 50% 확률로 라이어
   const topic = "Animal"
   const keyword = isLiar ? "???" : "Cat"
 
-const handleStartChat = async () => {
-  if (!roleRevealed || !topicRevealed) return
+  const handleStartChat = async () => {
+    if (!roleRevealed || !topicRevealed) return
 
-  // 이미 세션이 있으면 재사용(새로 시작이면 지워도 됨)
-  const existing = localStorage.getItem("sessionId") ?? undefined
+    try {
+      const existing = localStorage.getItem("sessionId") ?? undefined
+      const consentedAt = localStorage.getItem("consentedAt") ?? new Date().toISOString()
 
-  const consentedAt = localStorage.getItem("consentedAt") ?? new Date().toISOString()
+      const { sessionId } = await startSession({
+        consentedAt,
+        ua: navigator.userAgent,
+        condition: "default",
+        sessionId: existing,
+      })
 
-  const { sessionId } = await startSession({
-    consentedAt,
-    ua: navigator.userAgent,
-    condition: "default",
-    sessionId: existing,
-  })
+      localStorage.setItem("sessionId", sessionId)
 
-  localStorage.setItem("sessionId", sessionId)
+      await logEvent({
+        sessionId,
+        type: "BRIEFING_COMPLETED",
+        payload: { roleRevealed, topicRevealed },
+      }).catch((err) => {
+        console.error("Failed to log briefing completion", err)
+      })
 
-  // (선택) 브리핑 완료 이벤트 남기기
-  await logEvent({
-    sessionId,
-    type: "BRIEFING_COMPLETED",
-    payload: { roleRevealed, topicRevealed },
-  })
-
-  router.push("/play")
-}
+      router.push("/play")
+    } catch (err: any) {
+      console.error(err)
+      toast({
+        variant: "destructive",
+        title: "Unable to start the session",
+        description: err?.message ?? "Please try again.",
+      })
+    }
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-muted/20 px-4 py-8">

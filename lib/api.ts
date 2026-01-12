@@ -9,7 +9,10 @@ export async function startSession(params: {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(params),
     });
-    if (!res.ok) throw new Error("Failed to start session");
+    if (!res.ok) {
+      const message = await res.text().catch(() => null);
+      throw new Error(message?.trim() || "Failed to start session");
+    }
     return res.json();
   }
   
@@ -24,7 +27,10 @@ export async function startSession(params: {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(params),
     });
-    if (!res.ok) throw new Error("Failed to log event");
+    if (!res.ok) {
+      const message = await res.text().catch(() => null);
+      throw new Error(message?.trim() || "Failed to log event");
+    }
     return res.json();
   }
   

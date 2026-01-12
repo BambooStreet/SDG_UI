@@ -8,11 +8,13 @@ import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useRouter } from "next/navigation"
 import { startSession, logEvent } from "@/lib/api"
+import { useToast } from "@/hooks/use-toast"
 
 export function ConsentSection() {
   const [agreed, setAgreed] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+  const { toast } = useToast()
 
   const handleProceed = async () => {
     if (!agreed || isSubmitting) return
@@ -28,8 +30,17 @@ export function ConsentSection() {
       })
       localStorage.setItem("sessionId", sessionId)
       localStorage.setItem("consentedAt", consentedAt)
-      await logEvent({ sessionId, type: "CONSENTED" })
+      await logEvent({ sessionId, type: "CONSENTED" }).catch((err) => {
+        console.error("Failed to log consent", err)
+      })
       router.push("/pre-survey")
+    } catch (err: any) {
+      console.error(err)
+      toast({
+        variant: "destructive",
+        title: "Unable to start the session",
+        description: err?.message ?? "Please try again.",
+      })
     } finally {
       setIsSubmitting(false)
     }

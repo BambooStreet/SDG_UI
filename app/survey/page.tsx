@@ -40,13 +40,6 @@ const stripNumberedOptions = (text: string) => {
   const trimmed = cleaned.slice(0, start).trim()
   return trimmed.replace(/\(\s*$/, "").trim()
 }
-const formatSectionTitle = (key: string) =>
-  key
-    .replace(/_/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, (match) => match.toUpperCase())
-
 export default function SurveyPage() {
   const router = useRouter()
   const [responses, setResponses] = useState<Record<string, string>>({})
@@ -169,9 +162,6 @@ export default function SurveyPage() {
             ) : null}
             {currentSections.map((section) => (
               <div key={section.key} className="rounded-lg border border-border/70 bg-muted/20 p-5 space-y-6">
-                <div className="text-sm font-semibold tracking-wide text-muted-foreground">
-                  {formatSectionTitle(section.key)}
-                </div>
                 {section.key === "attitude_clarity" ? (
                   <div className="rounded-md border border-border bg-muted/40 px-4 py-3 text-sm text-foreground">
                     <p>

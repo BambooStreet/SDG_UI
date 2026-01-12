@@ -244,9 +244,15 @@ def game_start(req: StartReq):
             raise HTTPException(status_code=500, detail="failed to start game")
 
         # DB 저장
+        serialized = serialize_game(game)
+        logging.info(
+            "[diag] game_start discussion rounds=%s index=%s",
+            serialized.get("discussion_rounds"),
+            serialized.get("discussion_round_index"),
+        )
         state = {
             "participantName": req.participantName,
-            "game": serialize_game(game),
+            "game": serialized,
         }
         save_session_state(req.sessionId, state)
 
@@ -283,6 +289,12 @@ def game_step(req: StepReq):
             raise HTTPException(status_code=400, detail="game not started for this session")
 
         game = deserialize_game(game_state, GameSession, Player, AIPlayer, GameState, Role)
+        logging.info(
+            "[diag] loaded discussion rounds=%s index=%s (raw=%s)",
+            getattr(game, "discussion_rounds", None),
+            getattr(game, "discussion_round_index", None),
+            game_state.get("discussion_rounds"),
+        )
 
         action = req.action or {}
         a_type = action.get("type")
@@ -406,7 +418,13 @@ def game_step(req: StepReq):
             return presented
 
         # 저장
-        state["game"] = serialize_game(game)
+        serialized = serialize_game(game)
+        logging.info(
+            "[diag] saving discussion rounds=%s index=%s",
+            serialized.get("discussion_rounds"),
+            serialized.get("discussion_round_index"),
+        )
+        state["game"] = serialized
         state["votes_cast"] = votes_cast
         save_session_state(req.sessionId, state)
 

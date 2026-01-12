@@ -83,8 +83,9 @@
       "SC2": "In new situations, I decide what to do by observing others."
     },
     "message_strength": {
-      "MS1": "The agent I talked with used a confident tone.",
-      "MS2": "The agent I talked with showed a hesitant attitude."
+      "MS1": "The agents' I talked with were confident.",
+      "MS2": "The agents' I talked with were definitive.",
+      "MS3": "The agents' I talked with used hesitant speech patterns (e.g., hmm..., I'm not sure...)."
     }
   }
 }

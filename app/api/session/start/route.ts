@@ -7,6 +7,11 @@ export async function POST(req: Request) {
 
   const sessionId: string = body.sessionId ?? randomUUID();
   const consentedAt: string = body.consentedAt ?? new Date().toISOString();
+  const gameBackendUrl = process.env.GAME_BACKEND_URL;
+  const condition =
+    gameBackendUrl == null
+      ? (body.condition ?? null)
+      : (gameBackendUrl === "http://127.0.0.1:8000" ? "test" : "experiment");
 
   await sql`
     insert into sessions (session_id, consented_at)
@@ -22,7 +27,7 @@ export async function POST(req: Request) {
       'SESSION_STARTED',
       ${JSON.stringify({
         ua: body.ua ?? null,
-        condition: body.condition ?? null,
+        condition,
       })}::jsonb
     )
   `;

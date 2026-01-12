@@ -39,3 +39,15 @@ def insert_event(session_id: str, type_: str, payload: dict) -> None:
             (session_id, type_, Json(payload)),
         )
         conn.commit()
+
+def insert_context_message(session_id: str, role: str, name: str, content: str, phase: str) -> None:
+    insert_event(
+        session_id,
+        "CONTEXT_MESSAGE",
+        {
+            "role": role,
+            "name": name,
+            "content": content,
+            "phase": phase,
+        },
+    )

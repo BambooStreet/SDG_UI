@@ -557,7 +557,20 @@ export default function PlayPage() {
       const pending = pendingEndRef.current
       pendingEndRef.current = null
       router.push("/results")
+      return
     }
+
+    if (phase === "ENDED") {
+      router.push("/results")
+      return
+    }
+
+    if (phase === "VOTING") {
+      setShowAIVoting(true)
+      return
+    }
+
+    await pumpAI()
   }
   
   // ✅ PhaseInfoDialog “버튼이 onOpenChange()를 인자 없이 호출해도” 닫히게 처리

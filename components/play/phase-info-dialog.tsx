@@ -77,7 +77,7 @@ export function PhaseInfoDialog({ open, onOpenChange, phase }: PhaseInfoDialogPr
                 Discussion starts now. Share who you think the Liar is and why, and exchange opinions with others.
               </p>
               <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                <h4 className="text-sm font-medium">This is 1 turn.</h4>
+                <h4 className="text-sm font-medium">This is 2 turns.</h4>
                 <p className="text-sm text-muted-foreground">
                   Briefly explain your suspicion and respond to other players' viewpoints.
                 </p>

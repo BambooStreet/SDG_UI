@@ -2,6 +2,7 @@ import os
 import logging
 import random
 import json
+import re
 from openai import OpenAI
 from dotenv import load_dotenv
 from .player import Player
@@ -22,6 +23,21 @@ class AIPlayer(Player):
         텍스트에서 인코딩 오류를 유발할 수 있는 특수문자(surrogates)를 제거합니다.
         """
         return text.encode('utf-8', 'ignore').decode('utf-8')
+
+    def _select_discussion_anchor(self, discussion_log: list) -> str:
+        noise = {"?", "hi", "hello", "test"}
+        keyword_re = re.compile(r"\b(vote|voting|liar|suspect)\b|\bBot_\d+\b", re.IGNORECASE)
+        digit_re = re.compile(r"\d")
+
+        for raw in reversed(discussion_log or []):
+            text = self._sanitize_text(raw).strip()
+            if not text:
+                continue
+            if text.lower() in noise:
+                continue
+            if keyword_re.search(text) or digit_re.search(text):
+                return text
+        return ""
 
     def _call_llm(self, system_prompt: str, user_prompt: str, temp: float = 0.7) -> str:
         """LLM 호출을 담당하는 헬퍼 함수"""
@@ -127,6 +143,11 @@ class AIPlayer(Player):
 
         logging.info(f"이전 토론 내역 disc_history : {disc_history}")
 
+        anchor = self._select_discussion_anchor(current_discussion_log)
+        if anchor:
+            logging.info(f"[Anchor] 선택된 발언: {anchor}")
+        else:
+            logging.info("[Anchor] 유의미한 발언 없음")
         
         target_to_accuse = ""
 
@@ -166,6 +187,7 @@ class AIPlayer(Player):
             target_to_accuse=target_to_accuse,
             description_context=desc_context, # 변수명 변경 주의
             discussion_history=disc_history,  # [New] 프롬프트로 전달
+            discussion_anchor=anchor,
             is_authoritative=is_authoritative
         )
         

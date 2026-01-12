@@ -91,6 +91,8 @@ export default function PlayPage() {
 
   const myName = privateState?.myName as string | undefined
   const currentPlayer = publicState?.turn?.currentPlayer as string | undefined
+  const discussionRoundIndex = publicState?.discussion_round_index ?? 1
+  const turnIndex = publicState?.turn?.index ?? -1
 
   const isPopupBlocking =
     showPhaseInfo ||
@@ -167,13 +169,23 @@ export default function PlayPage() {
     if (phase !== "DESCRIPTION" && phase !== "DISCUSSION") return
     if (!myName || currentPlayer !== myName) return
 
-    const turnIndex = publicState?.turn?.index
-    const key = `${phase}:${turnIndex}:${currentPlayer}`
+    const key = `${phase}:${discussionRoundIndex ?? "na"}:${turnIndex}:${currentPlayer}`
     if (lastTurnKeyRef.current === key) return
 
     lastTurnKeyRef.current = key
     setShowTurnInfo(true)
-  }, [phase, myName, currentPlayer, publicState?.turn?.index, showPhaseInfo, showTurnInfo, showMidCheck, showFinalVote, uiNeed])
+  }, [
+    phase,
+    myName,
+    currentPlayer,
+    turnIndex,
+    discussionRoundIndex,
+    showPhaseInfo,
+    showTurnInfo,
+    showMidCheck,
+    showFinalVote,
+    uiNeed,
+  ])
   
   function pushOneLocalMessage(m: ApiMsg) {
     const now = Date.now()

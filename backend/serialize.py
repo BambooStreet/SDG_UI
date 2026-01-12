@@ -29,6 +29,8 @@ def serialize_game(game) -> dict:
         "winner": _enum_name(getattr(game, "winner", None)),
         "descriptions": dict(getattr(game, "descriptions", {}) or {}),
         "discussions": list(getattr(game, "discussions", []) or []),
+        "discussion_rounds": int(getattr(game, "discussion_rounds", 1)),
+        "discussion_round_index": int(getattr(game, "discussion_round_index", 1)),
         "human_suspect_name": getattr(game, "human_suspect_name", None),
         "current_round": int(getattr(game, "current_round", 1)),
         "players": players,
@@ -41,6 +43,8 @@ def deserialize_game(state: dict, GameSession, Player, AIPlayer, GameState, Role
     g.turn_index = int(state.get("turn_index", 0))
     g.descriptions = state.get("descriptions", {}) or {}
     g.discussions = state.get("discussions", []) or []
+    g.discussion_rounds = int(state.get("discussion_rounds", 1))
+    g.discussion_round_index = int(state.get("discussion_round_index", 1))
     g.human_suspect_name = state.get("human_suspect_name")
     g.current_round = int(state.get("current_round", 1))
 
@@ -95,6 +99,8 @@ def present_for_player(game, me_name: str, Role) -> dict:
         "phase": _enum_name(game.game_state),
         "publicState": {
             "round": int(getattr(game, "current_round", 1)),
+            "discussion_round_index": int(getattr(game, "discussion_round_index", 1)),
+            "discussion_rounds": int(getattr(game, "discussion_rounds", 1)),
             "topic": game.category,
             "players": [{"name": p.name, "is_ai": bool(getattr(p, "is_ai", False))} for p in game.players.values()],
             "turn": {

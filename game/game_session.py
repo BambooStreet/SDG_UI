@@ -30,6 +30,8 @@ class GameSession:
         self.descriptions: dict[str, str] = {}
 
         self.discussions: list[str] = [] # 토론 내용을 기록할 리스트 추가
+        self.discussion_rounds: int = 2
+        self.discussion_round_index: int = 1
 
         # 실험용
         self.human_suspect_name: str | None = None # [신규] 사람이 의심한 대상 이름 저장
@@ -112,6 +114,7 @@ class GameSession:
         self.turn_index = 0
         self.descriptions = {}
         self.discussions = [] # 토론 초기화
+        self.discussion_round_index = 1
 
         logging.info(f"--- 게임 시작 ---")
         logging.info(f"[설정] 카테고리: {self.category}, 정답: {self.keyword}")
@@ -135,6 +138,7 @@ class GameSession:
         self.turn_index = 0
         self.descriptions = {}
         self.discussions = []
+        self.discussion_round_index = 1
         logging.info("--- 게임 리셋 (다음 라운드 준비) ---")
 
     # --- 2. 게임 진행 단계 ---
@@ -158,6 +162,7 @@ class GameSession:
             logging.info("설명 종료. 토론 단계 진입.")
             self.game_state = GameState.DISCUSSION
             self.turn_index = 0
+            self.discussion_round_index = 1
 
     def handle_discussion(self, message: str):
         if self.game_state != GameState.DISCUSSION:
@@ -171,11 +176,15 @@ class GameSession:
 
         self.turn_index += 1
         
-        # 모든 플레이어의 발언이 끝나면 -> VOTING 상태로 변경
         if self.turn_index >= len(self.turn_order):
-            logging.info("토론 종료. 투표 단계 진입.")
-            self.game_state = GameState.VOTING
-            self.turn_index = 0 # 투표를 위한 인덱스 리셋 (필요시)
+            if self.discussion_round_index < self.discussion_rounds:
+                self.discussion_round_index += 1
+                self.turn_index = 0
+                logging.info(f"[토론] 다음 라운드 시작 ({self.discussion_round_index}/{self.discussion_rounds})")
+            else:
+                logging.info("토론 종료. 투표 단계 진입.")
+                self.game_state = GameState.VOTING
+                self.turn_index = 0 # 투표를 위한 인덱스 리셋 (필요시)
 
     def handle_vote(self, voter: Player, target_name: str) -> bool:
         if self.game_state != GameState.VOTING:
@@ -234,7 +243,17 @@ class GameSession:
     def reorder_for_discussion(self):
         players = list(self.players.values())
         random.shuffle(players)
+
+        # mid-check에서 선택된 AI가 첫 발화자가 되지 않도록 회전
+        suspect = self.human_suspect_name
+        if suspect:
+            for i, p in enumerate(players):
+                if getattr(p, "is_ai", False) and p.name != suspect:
+                    players = players[i:] + players[:i]
+                    break
+
         # 토론 단계에서도 AI가 먼저 말하도록 순서를 회전
         self.turn_order = self._rotate_to_first_ai(players)
         self.turn_index = 0
+        self.discussion_round_index = 1
         logging.info(f"[순서 조작] 토론 순서 재배열: {[p.name for p in self.turn_order]}")

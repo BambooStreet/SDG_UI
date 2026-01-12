@@ -43,7 +43,7 @@ def deserialize_game(state: dict, GameSession, Player, AIPlayer, GameState, Role
     g.turn_index = int(state.get("turn_index", 0))
     g.descriptions = state.get("descriptions", {}) or {}
     g.discussions = state.get("discussions", []) or []
-    g.discussion_rounds = int(state.get("discussion_rounds", 1))
+    g.discussion_rounds = int(state.get("discussion_rounds", 2))
     g.discussion_round_index = int(state.get("discussion_round_index", 1))
     g.human_suspect_name = state.get("human_suspect_name")
     g.current_round = int(state.get("current_round", 1))

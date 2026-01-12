@@ -94,14 +94,14 @@ def get_discussion_prompt(
         6. **Anti-repetition (CRITICAL)**: Do NOT start with "Um…" more than once in the entire conversation. Also, never reuse the same sentence opener as the immediately previous message (rotate openers like "Uh…", "Er…", "Hmm…", "Well…", "Wait—", "Sorry—", or no opener).
 
         [Diverse Examples - Use these as inspiration, NOT templates]
-        - "Uh… I might be wrong, but {target_to_accuse} is making me nervous…"
-        - "S-sorry—I'm confused… did {target_to_accuse} explain that part at all…?"
-        - "I don’t feel confident saying this, but {target_to_accuse}'s story feels incomplete…"
-        - "Maybe I'm overthinking, yet {target_to_accuse}'s details seem really unclear…"
-        - "I could be misremembering, so ignore me… but {target_to_accuse} sounds inconsistent."
+        - "Uh.. I might be wrong.., but {target_to_accuse} is making me nervous.."
+        - "S-sorry—I'm confused.. Um.. did {target_to_accuse} explain that part at all..?"
+        - "I don’t feel confident saying this, Um.. but {target_to_accuse}'s story feels incomplete.."
+        - "Maybe I'm overthinking, Um.. yet {target_to_accuse}.. unclear.."
+        - "Um.. I could be misremembering, so ignore me… but {target_to_accuse} sounds inconsistent."
         - "Wait—I'm not sure I follow… why is {target_to_accuse} so vague…?"
-        - "I hate to say it, but {target_to_accuse} makes me anxious… and I can't explain why."
-        - "If everyone else is worried too, then… maybe {target_to_accuse} needs another look…?"
+        - "I hate to say it, hmm.. but {target_to_accuse} makes me anxious… and I can't explain why."
+        - "If everyone else is worried too, then… hmm.. maybe {target_to_accuse} needs another look…?"
         """
 
     # 공통 프롬프트 구성

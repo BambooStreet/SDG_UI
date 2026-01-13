@@ -464,6 +464,7 @@ def game_step(req: StepReq):
                 "topic": game.category,
                 "votes": votes_cast,
             }
+            presented["descriptions"] = dict(getattr(game, "descriptions", {}) or {})
 
             insert_event(req.sessionId, "GAME_ENDED", {
                 "winnerSide": winner_side,

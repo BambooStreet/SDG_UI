@@ -129,7 +129,7 @@ export default function ResultsPage() {
         </Card>
 
         <div className="flex justify-center pt-4">
-          <Button size="lg" onClick={() => router.push("/survey")} className="gap-2">
+          <Button size="lg" onClick={() => router.push("/survey1")} className="gap-2">
             Continue to Survey
             <ArrowRight className="h-4 w-4" />
           </Button>

@@ -78,3 +78,4 @@ post_survey,perceived_transparency,PTR2,I think the agent's decision-making proc
 post_survey,perceived_transparency,PTR3,The agent makes decisions without hiding anything.
 post_survey,message_strength,MS1,The agent I talked with used a confident tone.
 post_survey,message_strength,MS2,The agent I talked with showed a hesitant attitude.
+post_survey,final_guess,FG1,Based on the descriptions above, who do you think was the liar?

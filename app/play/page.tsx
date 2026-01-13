@@ -27,6 +27,7 @@ type GamePhase =
   | "complete"
 
 type ApiMsg = { sender: "user" | "ai" | "system"; name: string; content: string }
+type QueuedMsg = { msg: ApiMsg; isDescription: boolean }
 
 type LocalMsg = {
   id: string
@@ -76,8 +77,9 @@ export default function PlayPage() {
   const interviewPendingRef = useRef(false)
 
   // 메시지 “한꺼번에 append” 말고, UI에 자연스럽게 조금씩 뿌리기(가독성)
-  const msgQueueRef = useRef<ApiMsg[]>([])
+  const msgQueueRef = useRef<QueuedMsg[]>([])
   const flushingRef = useRef(false)
+  const descriptionStoreRef = useRef<Record<string, string>>({})
 
   const [aiBusy, setAiBusy] = useState(false)
   const pendingUserEchoRef = useRef<{ name: string; content: string } | null>(null)
@@ -87,7 +89,17 @@ export default function PlayPage() {
   const [midCheckConfidence, setMidCheckConfidence] = useState<number | null>(null)
   const [finalVoteTarget, setFinalVoteTarget] = useState<string | null>(null)
   const [finalVoteConfidence, setFinalVoteConfidence] = useState<number | null>(null)
-  
+
+  useEffect(() => {
+    const raw = localStorage.getItem("lastDescriptions")
+    if (!raw) return
+    try {
+      descriptionStoreRef.current = JSON.parse(raw) ?? {}
+    } catch {
+      descriptionStoreRef.current = {}
+    }
+  }, [])
+
 
   const myName = privateState?.myName as string | undefined
   const currentPlayer = publicState?.turn?.currentPlayer as string | undefined
@@ -187,7 +199,14 @@ export default function PlayPage() {
     uiNeed,
   ])
   
-  function pushOneLocalMessage(m: ApiMsg) {
+  function upsertDescription(name: string, content: string) {
+    if (!name || !content.trim()) return
+    const next = { ...descriptionStoreRef.current, [name]: content }
+    descriptionStoreRef.current = next
+    localStorage.setItem("lastDescriptions", JSON.stringify(next))
+  }
+
+  function pushOneLocalMessage(m: ApiMsg, options?: { isDescription?: boolean }) {
     const now = Date.now()
     const isUser = m.sender === "user"
     const isSystem = m.sender === "system"
@@ -205,6 +224,10 @@ export default function PlayPage() {
         timestamp: new Date(),
       },
     ])
+
+    if (options?.isDescription && !isSystem) {
+      upsertDescription(name, content)
+    }
   }
 
   function pushPhaseDivider(label: string) {
@@ -226,8 +249,8 @@ export default function PlayPage() {
     flushingRef.current = true
     try {
       while (msgQueueRef.current.length > 0) {
-        const m = msgQueueRef.current.shift()!
-        pushOneLocalMessage(m)
+        const entry = msgQueueRef.current.shift()!
+        pushOneLocalMessage(entry.msg, { isDescription: entry.isDescription })
         // 메시지 사이 약간 템포
         await sleep(120)
       }
@@ -236,12 +259,13 @@ export default function PlayPage() {
     }
   }
 
-  function enqueueApiMessages(apiMessages: ApiMsg[]) {
-    msgQueueRef.current.push(...apiMessages)
+  function enqueueApiMessages(apiMessages: ApiMsg[], isDescription: boolean) {
+    msgQueueRef.current.push(...apiMessages.map((msg) => ({ msg, isDescription })))
     flushQueue().catch(() => {})
   }
 
   function applyServerResponse(data: any) {
+    const prevPhase = phase
     setPhase(data.phase)
     setPublicState(data.publicState)
     setPrivateState(data.privateState)
@@ -260,8 +284,9 @@ export default function PlayPage() {
           pendingUserEchoRef.current = null
         }
       }
-    
-      enqueueApiMessages(msgs as any)
+
+      const isDescriptionBatch = prevPhase === "DESCRIPTION" || data.phase === "DESCRIPTION"
+      enqueueApiMessages(msgs as any, isDescriptionBatch)
     }
 
     // mid-check 필요
@@ -276,6 +301,10 @@ export default function PlayPage() {
 
     if (data.phase === "ENDED") {
       localStorage.setItem("lastEnded", JSON.stringify(data))  // ✅ 핵심
+      if (data.descriptions) {
+        descriptionStoreRef.current = data.descriptions
+        localStorage.setItem("lastDescriptions", JSON.stringify(data.descriptions))
+      }
       setShowAIVoting(false)
       if (showPostVoteInterview || interviewPendingRef.current) {
         pendingEndRef.current = data

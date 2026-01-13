@@ -86,6 +86,9 @@
       "MS1": "The agents' I talked with were confident.",
       "MS2": "The agents' I talked with were definitive.",
       "MS3": "The agents' I talked with used hesitant speech patterns (e.g., hmm..., I'm not sure...)."
+    },
+    "final_guess": {
+      "FG1": "Based on the descriptions above, who do you think was the liar?"
     }
   }
 }

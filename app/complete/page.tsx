@@ -7,11 +7,11 @@ import { Label } from "@/components/ui/label"
 import { ClipboardCheck } from "lucide-react"
 
 // control group, auth = False
-const COMPLETE_URL = "https://connect.cloudresearch.com/participant/project/991FE9C030/complete"
-const COMPLETE_CODE = "991FE9C030"
+// const COMPLETE_URL = "https://connect.cloudresearch.com/participant/project/991FE9C030/complete"
+// const COMPLETE_CODE = "991FE9C030"
 
-// const COMPLETE_URL = "https://connect.cloudresearch.com/participant/project/A140EFF381/complete"
-// const COMPLETE_CODE = "A140EFF381"
+const COMPLETE_URL = "https://connect.cloudresearch.com/participant/project/328ACB16DB/complete"
+const COMPLETE_CODE = "328ACB16DB"
 
 export default function CompletePage() {
   const [isOpening, setIsOpening] = useState(false)
